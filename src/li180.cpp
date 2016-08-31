@@ -15,10 +15,10 @@ int main(int argc, char **argv) {
   if (!cap.isOpened())
     throw std::runtime_error("Could not open selected device");
 
-  videoCapture.set(cv::CAP_PROP_FRAME_WIDTH, cameraWidth);
-  videoCapture.set(cv::CAP_PROP_FRAME_HEIGHT, cameraHeight);
-  videoCapture.set(cv::CAP_PROP_FPS, cameraFPS);
-  videoCapture.set(cv::CAP_PROP_CONVERT_RGB, 0);
+  cap.set(cv::CAP_PROP_FRAME_WIDTH, cameraWidth);
+  cap.set(cv::CAP_PROP_FRAME_HEIGHT, cameraHeight);
+  cap.set(cv::CAP_PROP_FPS, cameraFPS);
+  cap.set(cv::CAP_PROP_CONVERT_RGB, 0);
 
   bool capturing = true;
   int frameWrote = 0;
