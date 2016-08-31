@@ -5,8 +5,8 @@
 #include <stdexcept>
 
 const int cameraID = 0;
-const int cameraHeight = 3684 / 2;
-const int cameraWidth = 4912 / 2;
+const int cameraHeight = 3684;
+const int cameraWidth = 4912;
 const int cameraFPS = 4;
 
 int main(int argc, char **argv) {
@@ -22,19 +22,12 @@ int main(int argc, char **argv) {
 
   cv::Mat frame;
 
-  std::cout << "Clean up..." << std::endl;
-
-  for (auto i = 0; i < 4; ++i)
-    cap >> frame;
-
   std::cout << "Starting capture..." << std::endl;
 
   bool capturing = true;
   int frameWrote = 0;
   while (capturing) {
     cap >> frame;
-
-    cv::imshow("raw", frame);
 
     cv::Mat raw(cameraHeight, cameraWidth, CV_16UC1, frame.data);
     if (raw.empty()) {
