@@ -50,8 +50,8 @@ int main(int argc, char **argv) {
 
     if (cmd == 'c') {
       std::ostringstream s_path;
-      s_path << "leopard_sample_" << frameWrote++ << ".jpg";
-      cv::imwrite(s_path.str(), frame);
+      s_path << "leopard_sample_" << frameWrote++ << ".bmp";
+      cv::imwrite(s_path.str(), rgb8BitMat);
     } else if (cmd == 'q')
       capturing = false;
   }
