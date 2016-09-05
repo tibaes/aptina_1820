@@ -21,7 +21,6 @@ int main(int argc, char **argv) {
   cap.set(cv::CAP_PROP_FRAME_WIDTH, cameraWidth);
   cap.set(cv::CAP_PROP_FRAME_HEIGHT, cameraHeight);
   cap.set(cv::CAP_PROP_FPS, cameraFPS);
-  cap.set(cv::CAP_PROP_CONVERT_RGB, 0);
 
   cv::Mat frame;
 
