@@ -9,6 +9,9 @@ const int cameraHeight = 3684;
 const int cameraWidth = 4912;
 const int cameraFPS = 4;
 
+const int displayHeight = 768;
+const int displayWidth = 1024;
+
 int main(int argc, char **argv) {
   cv::VideoCapture cap;
   cap.open(cameraID);
@@ -45,7 +48,10 @@ int main(int argc, char **argv) {
     cv::Mat rgb8BitMat(cameraHeight, cameraWidth, CV_8UC3);
     cv::cvtColor(bayer8BitMat, rgb8BitMat, CV_BayerGB2RGB);
 
-    cv::imshow("Frame", rgb8BitMat);
+    // gui
+    cv::Mat display;
+    cv::resize(rgb8BitMat, display, cv::Size(displayWidth, displayHeight));
+    cv::imshow("Frame", display);
     char cmd = cv::waitKey(10);
 
     if (cmd == 'c') {
