@@ -4,16 +4,47 @@
 #include <opencv2/videoio.hpp>
 #include <stdexcept>
 
-const int cameraID = 0;
-const int cameraHeight = 3684;
-const int cameraWidth = 4912;
-const int cameraFPS = 4;
+int cameraID = 0;
+int cameraHeight = 3684;
+int cameraWidth = 4912;
+int cameraFPS = 4;
 
-const int displayHeight = 768;
-const int displayWidth = 1024;
+int displayHeight = 768;
+int displayWidth = 1024;
 
-int main(int argc, char **argv) {
-  cv::VideoCapture cap;
+const char *about =
+    "Testing Leopard Imaging 1820 module. Press c to capture or q to quit.";
+const char *keys = "{webcam | | Webcam id, using OpenCV defaults.}"
+                   "{dispHeight | | Desired visualization height.}"
+                   "{dispWidth | | Desired visualization width.}"
+                   "{capHeight | | Overwrite capture height (3684).}"
+                   "{capWidth  | | Overwrite capture width (4912).}"
+                   "{capFPS | | Overwrite capture framerate (4.0).}"
+                   "{h | | Display this help menu.}";
+
+void cmdParser(int argc, char **argv) {
+  cv::CommandLineParser parser(argc, argv, keys);
+  parser.about(about);
+  if (parser.has("h")) {
+    parser.printMessage();
+    exit(0);
+  }
+
+  if (parser.has("webcam"))
+    cameraID = parser.get<int>("webcam");
+  if (parser.has("dispHeight"))
+    displayHeight = parser.get<int>("dispHeight");
+  if (parser.has("dispWidth"))
+    displayWidth = parser.get<int>("dispWidth");
+  if (parser.has("capHeight"))
+    cameraHeight = parser.get<int>("capHeight");
+  if (parser.has("capWidth"))
+    cameraWidth = parser.get<int>("capWidth");
+  if (parser.has("capFPS"))
+    cameraFPS = parser.get<int>("capFPS");
+}
+
+void setup(cv::VideoCapture &cap) {
   cap.open(cameraID);
   if (!cap.isOpened())
     throw std::runtime_error("Could not open selected device");
@@ -45,41 +76,57 @@ int main(int argc, char **argv) {
 
   std::cout << "Mode: " << mode << std::endl;
   std::cout << "Monochrome: " << cap.get(cv::CAP_PROP_MONOCHROME) << std::endl;
+}
 
-  cv::Mat frame;
+cv::Mat convertBayesBGR(cv::Mat &frame) {
+  cv::Mat raw(cameraHeight, cameraWidth, CV_16UC1, frame.data);
+  if (raw.empty())
+    throw std::runtime_error("Captured an empty image.");
 
-  std::cout << "Starting capture..." << std::endl;
+  cv::Mat bayer8BitMat = raw.clone();
+  // Convert the Bayer data from 16-bit to to 8-bit
+  // The 3rd parameter here scales the data by 1/16 so that it fits in 8 bits.
+  // Without it, convertTo() just seems to chop off the high order bits.
+  bayer8BitMat.convertTo(bayer8BitMat, CV_8UC1, 0.0625);
+  // Convert the Bayer data to 8-bit RGB
+  cv::Mat rgb8BitMat(cameraHeight, cameraWidth, CV_8UC3);
+  cv::cvtColor(bayer8BitMat, rgb8BitMat, CV_BayerGB2RGB);
+
+  return rgb8BitMat;
+}
+
+int main(int argc, char **argv) {
+  cmdParser(argc, argv);
+
+  cv::VideoCapture cap;
+  setup(cap);
+
+  std::cout << "Starting camera. Press c to capture or q to quit." << std::endl;
 
   bool capturing = true;
   int frameWrote = 0;
   while (capturing) {
-    cap >> frame;
-
-    cv::Mat raw(cameraHeight, cameraWidth, CV_16UC1, frame.data);
-    if (raw.empty()) {
-      std::cout << "Captured an empty image." << std::endl;
+    cv::Mat frame, color;
+    try {
+      cap >> frame;
+      color = convertBayesBGR(frame);
+    } catch (std::exception &e) {
+      std::cerr << "Skipping frame: " << e.what() << std::endl;
       continue;
     }
 
-    cv::Mat bayer8BitMat = raw.clone();
-    // Convert the Bayer data from 16-bit to to 8-bit
-    // The 3rd parameter here scales the data by 1/16 so that it fits in 8 bits.
-    // Without it, convertTo() just seems to chop off the high order bits.
-    bayer8BitMat.convertTo(bayer8BitMat, CV_8UC1, 0.0625);
-    // Convert the Bayer data to 8-bit RGB
-    cv::Mat rgb8BitMat(cameraHeight, cameraWidth, CV_8UC3);
-    cv::cvtColor(bayer8BitMat, rgb8BitMat, CV_BayerGB2RGB);
+    // GUI
 
-    // gui
     cv::Mat display;
-    cv::resize(rgb8BitMat, display, cv::Size(displayWidth, displayHeight));
-    cv::imshow("Frame", display);
+    cv::resize(color, display, cv::Size(displayWidth, displayHeight));
+    cv::imshow("Frame - c: capture - q: quit", display);
     char cmd = cv::waitKey(10);
 
     if (cmd == 'c') {
       std::ostringstream s_path;
       s_path << "leopard_sample_" << frameWrote++ << ".bmp";
-      cv::imwrite(s_path.str(), rgb8BitMat);
+      cv::imwrite(s_path.str(), color);
+      std::cout << "Stored image at: " << s_path.str() << std::endl;
     } else if (cmd == 'q')
       capturing = false;
   }
