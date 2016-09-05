@@ -48,8 +48,10 @@ int main(int argc, char **argv) {
     cv::cvtColor(bayer8BitMat, rgb8BitMat, CV_BayerGB2RGB);
 
     // gui
-    cv::Mat display;
+    cv::Mat display, displayRAW;
+    cv::resize(frame, displayRAW, cv::Size(displayWidth, displayHeight));
     cv::resize(rgb8BitMat, display, cv::Size(displayWidth, displayHeight));
+    cv::imshow("RAW", displayRAW);
     cv::imshow("Frame", display);
     char cmd = cv::waitKey(10);
 
