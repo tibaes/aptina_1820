@@ -9,6 +9,9 @@ const int cameraHeight = 3684;
 const int cameraWidth = 4912;
 const int cameraFPS = 4;
 
+const int displayHeight = 768;
+const int displayWidth = 1024;
+
 int main(int argc, char **argv) {
   cv::VideoCapture cap;
   cap.open(cameraID);
@@ -18,7 +21,6 @@ int main(int argc, char **argv) {
   cap.set(cv::CAP_PROP_FRAME_WIDTH, cameraWidth);
   cap.set(cv::CAP_PROP_FRAME_HEIGHT, cameraHeight);
   cap.set(cv::CAP_PROP_FPS, cameraFPS);
-  cap.set(cv::CAP_PROP_CONVERT_RGB, 0);
 
   cv::Mat frame;
 
@@ -45,13 +47,18 @@ int main(int argc, char **argv) {
     cv::Mat rgb8BitMat(cameraHeight, cameraWidth, CV_8UC3);
     cv::cvtColor(bayer8BitMat, rgb8BitMat, CV_BayerGB2RGB);
 
-    cv::imshow("Frame", rgb8BitMat);
+    // gui
+    cv::Mat display, displayRAW;
+    cv::resize(frame, displayRAW, cv::Size(displayWidth, displayHeight));
+    cv::resize(rgb8BitMat, display, cv::Size(displayWidth, displayHeight));
+    cv::imshow("RAW", displayRAW);
+    cv::imshow("Frame", display);
     char cmd = cv::waitKey(10);
 
     if (cmd == 'c') {
       std::ostringstream s_path;
-      s_path << "leopard_sample_" << frameWrote++ << ".jpg";
-      cv::imwrite(s_path.str(), frame);
+      s_path << "leopard_sample_" << frameWrote++ << ".bmp";
+      cv::imwrite(s_path.str(), rgb8BitMat);
     } else if (cmd == 'q')
       capturing = false;
   }
