@@ -43,10 +43,7 @@ void cmdParser(int argc, char **argv) {
     cameraFPS = parser.get<int>("capFPS");
 }
 
-int main(int argc, char **argv) {
-  cmdParser(argc, argv);
-
-  cv::VideoCapture cap;
+void setup(cv::VideoCapture &cap) {
   cap.open(cameraID);
   if (!cap.isOpened())
     throw std::runtime_error("Could not open selected device");
@@ -78,14 +75,20 @@ int main(int argc, char **argv) {
 
   std::cout << "Mode: " << mode << std::endl;
   std::cout << "Monochrome: " << cap.get(cv::CAP_PROP_MONOCHROME) << std::endl;
+}
 
-  cv::Mat frame;
+int main(int argc, char **argv) {
+  cmdParser(argc, argv);
+
+  cv::VideoCapture cap;
+  setup(cap);
 
   std::cout << "Starting capture..." << std::endl;
 
   bool capturing = true;
   int frameWrote = 0;
   while (capturing) {
+    cv::Mat frame;
     cap >> frame;
 
     cv::Mat raw(cameraHeight, cameraWidth, CV_16UC1, frame.data);
