@@ -12,7 +12,8 @@ int cameraFPS = 4;
 int displayHeight = 768;
 int displayWidth = 1024;
 
-const char *about = "Testing Leopard Imaging 1820 module.";
+const char *about =
+    "Testing Leopard Imaging 1820 module. Press c to capture or q to quit.";
 const char *keys = "{webcam | | Webcam id, using OpenCV defaults.}"
                    "{dispHeight | | Desired visualization height.}"
                    "{dispWidth | | Desired visualization width.}"
@@ -77,45 +78,55 @@ void setup(cv::VideoCapture &cap) {
   std::cout << "Monochrome: " << cap.get(cv::CAP_PROP_MONOCHROME) << std::endl;
 }
 
+cv::Mat convertBayesBGR(cv::Mat &frame) {
+  cv::Mat raw(cameraHeight, cameraWidth, CV_16UC1, frame.data);
+  if (raw.empty())
+    throw std::runtime_error("Captured an empty image.");
+
+  cv::Mat bayer8BitMat = raw.clone();
+  // Convert the Bayer data from 16-bit to to 8-bit
+  // The 3rd parameter here scales the data by 1/16 so that it fits in 8 bits.
+  // Without it, convertTo() just seems to chop off the high order bits.
+  bayer8BitMat.convertTo(bayer8BitMat, CV_8UC1, 0.0625);
+  // Convert the Bayer data to 8-bit RGB
+  cv::Mat rgb8BitMat(cameraHeight, cameraWidth, CV_8UC3);
+  cv::cvtColor(bayer8BitMat, rgb8BitMat, CV_BayerGB2RGB);
+
+  return rgb8BitMat;
+}
+
 int main(int argc, char **argv) {
   cmdParser(argc, argv);
 
   cv::VideoCapture cap;
   setup(cap);
 
-  std::cout << "Starting capture..." << std::endl;
+  std::cout << "Starting camera. Press c to capture or q to quit." << std::endl;
 
   bool capturing = true;
   int frameWrote = 0;
   while (capturing) {
-    cv::Mat frame;
-    cap >> frame;
-
-    cv::Mat raw(cameraHeight, cameraWidth, CV_16UC1, frame.data);
-    if (raw.empty()) {
-      std::cout << "Captured an empty image." << std::endl;
+    cv::Mat frame, color;
+    try {
+      cap >> frame;
+      color = convertBayesBGR(frame);
+    } catch (std::exception &e) {
+      std::cerr << "Skipping frame: " << e.what() << std::endl;
       continue;
     }
 
-    cv::Mat bayer8BitMat = raw.clone();
-    // Convert the Bayer data from 16-bit to to 8-bit
-    // The 3rd parameter here scales the data by 1/16 so that it fits in 8 bits.
-    // Without it, convertTo() just seems to chop off the high order bits.
-    bayer8BitMat.convertTo(bayer8BitMat, CV_8UC1, 0.0625);
-    // Convert the Bayer data to 8-bit RGB
-    cv::Mat rgb8BitMat(cameraHeight, cameraWidth, CV_8UC3);
-    cv::cvtColor(bayer8BitMat, rgb8BitMat, CV_BayerGB2RGB);
+    // GUI
 
-    // gui
     cv::Mat display;
-    cv::resize(rgb8BitMat, display, cv::Size(displayWidth, displayHeight));
-    cv::imshow("Frame", display);
+    cv::resize(color, display, cv::Size(displayWidth, displayHeight));
+    cv::imshow("Frame - c: capture - q: quit", display);
     char cmd = cv::waitKey(10);
 
     if (cmd == 'c') {
       std::ostringstream s_path;
       s_path << "leopard_sample_" << frameWrote++ << ".bmp";
-      cv::imwrite(s_path.str(), rgb8BitMat);
+      cv::imwrite(s_path.str(), color);
+      std::cout << "Stored image at: " << s_path.str() << std::endl;
     } else if (cmd == 'q')
       capturing = false;
   }
