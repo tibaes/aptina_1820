@@ -66,20 +66,13 @@ int main(int argc, char **argv) {
     // The 3rd parameter here scales the data by 1/16 so that it fits in 8 bits.
     // Without it, convertTo() just seems to chop off the high order bits.
     bayer8BitMat.convertTo(bayer8BitMat, CV_8UC1, 0.0625);
-
     // Convert the Bayer data to 8-bit RGB
     cv::Mat rgb8BitMat(cameraHeight, cameraWidth, CV_8UC3);
     cv::cvtColor(bayer8BitMat, rgb8BitMat, CV_BayerGB2RGB);
 
-    // cv::imshow("draw", raw);
-    // cv::imshow("bayer", bayer8BitMat);
-    // cv::imshow("rgb", rgb8BitMat);
-
     // gui
-    cv::Mat display, displayRAW;
-    // cv::resize(frame, displayRAW, cv::Size(displayWidth, displayHeight));
+    cv::Mat display;
     cv::resize(rgb8BitMat, display, cv::Size(displayWidth, displayHeight));
-    // cv::imshow("RAW", displayRAW);
     cv::imshow("Frame", display);
     char cmd = cv::waitKey(10);
 
