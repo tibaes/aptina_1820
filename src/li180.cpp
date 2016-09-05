@@ -18,9 +18,32 @@ int main(int argc, char **argv) {
   if (!cap.isOpened())
     throw std::runtime_error("Could not open selected device");
 
-  cap.set(cv::CAP_PROP_FRAME_WIDTH, cameraWidth);
-  cap.set(cv::CAP_PROP_FRAME_HEIGHT, cameraHeight);
-  cap.set(cv::CAP_PROP_FPS, cameraFPS);
+  cap.set(cv::CAP_PROP_FRAME_WIDTH, (double)cameraWidth);
+  cap.set(cv::CAP_PROP_FRAME_HEIGHT, (double)cameraHeight);
+  cap.set(cv::CAP_PROP_FPS, (double)cameraFPS);
+
+  std::cout << "Convert to rgb: " << cap.get(cv::CAP_PROP_CONVERT_RGB)
+            << std::endl;
+  std::cout << "Format: " << cap.get(cv::CAP_PROP_FORMAT) << std::endl;
+  std::cout << "Fps: " << cap.get(cv::CAP_PROP_FPS) << std::endl;
+
+  int ex = static_cast<int>(cap.get(CV_CAP_PROP_FOURCC));
+  // Transform from int to char via Bitwise operators
+  char fourcc[] = {(char)(ex & 0XFF), (char)((ex & 0XFF00) >> 8),
+                   (char)((ex & 0XFF0000) >> 16),
+                   (char)((ex & 0XFF000000) >> 24), 0};
+  std::cout << "4-character code: " << fourcc << std::endl;
+  std::cout << "Width: " << cap.get(cv::CAP_PROP_FRAME_WIDTH) << std::endl;
+  std::cout << "Height: " << cap.get(cv::CAP_PROP_FRAME_HEIGHT) << std::endl;
+
+  ex = static_cast<int>(cap.get(CV_CAP_PROP_MODE));
+  // Transform from int to char via Bitwise operators
+  char mode[] = {(char)(ex & 0XFF), (char)((ex & 0XFF00) >> 8),
+                 (char)((ex & 0XFF0000) >> 16), (char)((ex & 0XFF000000) >> 24),
+                 0};
+
+  std::cout << "Mode: " << mode << std::endl;
+  std::cout << "Monochrome: " << cap.get(cv::CAP_PROP_MONOCHROME) << std::endl;
 
   cv::Mat frame;
 
@@ -46,6 +69,10 @@ int main(int argc, char **argv) {
     // Convert the Bayer data to 8-bit RGB
     cv::Mat rgb8BitMat(cameraHeight, cameraWidth, CV_8UC3);
     cv::cvtColor(bayer8BitMat, rgb8BitMat, CV_BayerGB2RGB);
+
+    cv::imshow("draw", raw);
+    cv::imshow("bayer", bayer8BitMat);
+    cv::imshow("rgb", rgb8BitMat);
 
     // gui
     cv::Mat display, displayRAW;
