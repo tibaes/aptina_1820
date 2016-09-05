@@ -21,6 +21,7 @@ int main(int argc, char **argv) {
   cap.set(cv::CAP_PROP_FRAME_WIDTH, (double)cameraWidth);
   cap.set(cv::CAP_PROP_FRAME_HEIGHT, (double)cameraHeight);
   cap.set(cv::CAP_PROP_FPS, (double)cameraFPS);
+  cap.set(cv::CAP_PROP_CONVERT_RGB, 0);
 
   std::cout << "Convert to rgb: " << cap.get(cv::CAP_PROP_CONVERT_RGB)
             << std::endl;
