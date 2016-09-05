@@ -71,15 +71,15 @@ int main(int argc, char **argv) {
     cv::Mat rgb8BitMat(cameraHeight, cameraWidth, CV_8UC3);
     cv::cvtColor(bayer8BitMat, rgb8BitMat, CV_BayerGB2RGB);
 
-    cv::imshow("draw", raw);
-    cv::imshow("bayer", bayer8BitMat);
-    cv::imshow("rgb", rgb8BitMat);
+    // cv::imshow("draw", raw);
+    // cv::imshow("bayer", bayer8BitMat);
+    // cv::imshow("rgb", rgb8BitMat);
 
     // gui
     cv::Mat display, displayRAW;
-    cv::resize(frame, displayRAW, cv::Size(displayWidth, displayHeight));
+    // cv::resize(frame, displayRAW, cv::Size(displayWidth, displayHeight));
     cv::resize(rgb8BitMat, display, cv::Size(displayWidth, displayHeight));
-    cv::imshow("RAW", displayRAW);
+    // cv::imshow("RAW", displayRAW);
     cv::imshow("Frame", display);
     char cmd = cv::waitKey(10);
 
