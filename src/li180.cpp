@@ -34,7 +34,7 @@ void cmdParser(int argc, char **argv) {
   if (parser.has("dispHeight"))
     displayHeight = parser.get<int>("dispHeight");
   if (parser.has("dispWidth"))
-    displayWidth = parser.get<int>("displayWidth");
+    displayWidth = parser.get<int>("dispWidth");
   if (parser.has("capHeight"))
     cameraHeight = parser.get<int>("capHeight");
   if (parser.has("capWidth"))
