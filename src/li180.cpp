@@ -4,15 +4,48 @@
 #include <opencv2/videoio.hpp>
 #include <stdexcept>
 
-const int cameraID = 0;
-const int cameraHeight = 3684;
-const int cameraWidth = 4912;
-const int cameraFPS = 4;
+int cameraID = 0;
+int cameraHeight = 3684;
+int cameraWidth = 4912;
+int cameraFPS = 4;
 
-const int displayHeight = 768;
-const int displayWidth = 1024;
+int displayHeight = 768;
+int displayWidth = 1024;
+
+const char *about = "Testing Leopard Imaging 1820 module.";
+const char *keys = "{webcam | | Webcam id, using OpenCV defaults.}"
+                   "{dispHeight | | Desired visualization height.}"
+                   "{dispWidth | | Desired visualization width.}"
+                   "{capHeight | | Overwrite capture height (3684).}"
+                   "{capWidth  | | Overwrite capture width (4912).}"
+                   "{capFPS | | Overwrite capture framerate (4.0).}"
+                   "{h | | Display this help menu.}";
+
+void cmdParser(int argc, char **argv) {
+  cv::CommandLineParser parser(argc, argv, keys);
+  parser.about(about);
+  if (parser.has("h")) {
+    parser.printMessage();
+    exit(0);
+  }
+
+  if (parser.has("webcam"))
+    cameraID = parser.get<int>("webcam");
+  if (parser.has("dispHeight"))
+    displayHeight = parser.get<int>("dispHeight");
+  if (parser.has("dispWidth"))
+    displayWidth = parser.get<int>("displayWidth");
+  if (parser.has("capHeight"))
+    cameraHeight = parser.get<int>("capHeight");
+  if (parser.has("capWidth"))
+    cameraWidth = parser.get<int>("capWidth");
+  if (parser.has("capFPS"))
+    cameraFPS = parser.get<int>("capFPS");
+}
 
 int main(int argc, char **argv) {
+  cmdParser(argc, argv);
+
   cv::VideoCapture cap;
   cap.open(cameraID);
   if (!cap.isOpened())
